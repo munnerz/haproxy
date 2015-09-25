@@ -1,0 +1,51 @@
+{
+  "frontends": [
+    {
+      "name": "test",
+      "ip": "10.12.14.15",
+      "port": 12345,
+      "backend_rules": [
+        {
+          "name": "test_backend1"
+        }
+      ]
+    },
+    {
+      "name": "test2",
+      "ip": "10.12.14.11",
+      "port": 12345,
+      "backend_rules": [
+        {
+          "name": "test_backend1"
+        }
+      ]
+    },
+    {
+      "name": "test3",
+      "ip": "10.12.14.12",
+      "port": 12345,
+      "backend_rules": [
+        {
+          "name": "test_backend1"
+        }
+      ]
+    }
+  ],
+  "backends": [
+    {
+      "name": "test_backend1",
+      "balance_type": "leastconn",
+      "options": [
+        "forwardfor"
+      ],
+      "mode": "tcp",
+      "servers": [
+        {
+          "name": "node1",
+          "ip": "1.2.3.4",
+          "port": 1234
+        }
+      ]
+    }
+  ]
+}
