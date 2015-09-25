@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 
@@ -15,16 +13,6 @@ import (
 var (
 	filename = flag.String("file", "input.json", "Specify the JSON file to convert to HAProxy config")
 )
-
-func writeString(w io.Writer, s string) (n int, err error) {
-	return w.Write([]byte(fmt.Sprintf("%s\n", s)))
-}
-
-func writeWriteable(w io.Writer, o api.Writeable) {
-	for _, s := range o.Strings() {
-		writeString(w, s)
-	}
-}
 
 func main() {
 	flag.Parse()
@@ -47,7 +35,11 @@ func main() {
 
 	w := writer.NewWriter(&output)
 
-	writeWriteable(w, &input)
+	n, err := writer.WriteWriteable(w, &input)
+
+	if err != nil {
+		log.Fatalf("Error writing writeable to writer after %d bytes: %s", n, err.Error())
+	}
 
 	log.Printf("Config: \n%s", string(output))
 }

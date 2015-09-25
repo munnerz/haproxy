@@ -1,6 +1,6 @@
 package writer
 
-// Writer is a byte writer with a given output array
+// Writer writes bytes to output
 type Writer struct {
 	output *[]byte
 }
