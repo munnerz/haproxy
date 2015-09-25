@@ -2,44 +2,53 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
+	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
-	"log"
+	"net/http"
 
 	"github.com/munnerz/haproxy/api"
 	"github.com/munnerz/haproxy/api/writer"
+
+	"github.com/gorilla/mux"
 )
 
-var (
-	filename = flag.String("file", "input.json", "Specify the JSON file to convert to HAProxy config")
+const (
+	port = 10000
 )
 
 func main() {
-	flag.Parse()
+	r := mux.NewRouter()
 
-	b, err := ioutil.ReadFile(*filename)
+	r.HandleFunc("/", CreateHandler).Methods("POST")
 
-	if err != nil {
-		log.Fatalf("Error reading file: %s", err.Error())
-	}
+	log.Fatalln(http.ListenAndServe(fmt.Sprintf(":%d", port), r))
+}
 
-	input := api.JSONInput{}
+func CreateHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
 
-	err = json.Unmarshal(b, &input)
-
-	if err != nil {
-		log.Fatalf("Error parsing json file: %s", err.Error())
-	}
-
-	output := []byte{}
-
-	w := writer.NewWriter(&output)
-
-	n, err := writer.WriteWriteable(w, &input)
+	defer r.Body.Close()
 
 	if err != nil {
-		log.Fatalf("Error writing writeable to writer after %d bytes: %s", n, err.Error())
+		log.Errorf("Error reading request body: %s", err.Error())
+		return
 	}
 
-	log.Printf("Config: \n%s", string(output))
+	input := &api.JSONInput{}
+
+	err = json.Unmarshal(b, input)
+
+	if err != nil {
+		log.Errorf("Error decoding JSON input: %s", err.Error())
+		return
+	}
+
+	_, err = writer.WriteWriteable(w, input)
+
+	if err != nil {
+		log.Errorf("Error writing response: %s", err.Error())
+		return
+	}
+
 }
